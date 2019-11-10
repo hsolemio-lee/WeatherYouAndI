@@ -47,6 +47,12 @@ const weatherCases = {
         subtitle: "한솔이 잃어버리지 않게 눈 똑바로 뜨고 다녀요",
         icon: 'weather-fog'
     },
+    Mist: {
+        colors:['#D7D2CC', '#304352'],
+        title: "안개가 꼈어요",
+        subtitle: "한솔이 잃어버리지 않게 눈 똑바로 뜨고 다녀요",
+        icon: 'weather-fog'
+    },
     What: {
         colors:["#00ff99", "#00804d"],
         title: "???",
@@ -56,16 +62,19 @@ const weatherCases = {
 }
 
 export default function Weather(props) {
-    const {temp, weatherName} = props;
-    console.log("name : " + weatherName)
-    console.log("weatherCases  :" +weatherCases[weatherName ? weatherName : "What"])
-        if(weatherName == "Haze") {
+    const {temp, weatherName, pressWeather} = props;
+        if(weatherName == "Haze" || weatherName == "Mist") {
             return (
                 <LinearGradient
                     colors = {weatherCases[weatherName ? weatherName : "What"].colors}
-                    style = {styles.container}            >
-                    <View style={styles.upper}>
-                        <MaterialCommunityIcons color="white" size={144} name={weatherCases[weatherName ? weatherName : "What"].icon}/>
+                    style = {styles.container}>
+                    <View style={styles.upper} >
+                        <MaterialCommunityIcons 
+                            color="white" 
+                            size={144} 
+                            name={weatherCases[weatherName ? weatherName : "What"].icon} 
+                            onPress={pressWeather}
+                        />
                         <Text style={styles.temp}>{temp}°C</Text>
                         <Text style={styles.temp}>{weatherName}</Text>
                     </View>
@@ -79,9 +88,13 @@ export default function Weather(props) {
             return (
                 <LinearGradient
                     colors = {weatherCases[weatherName ? weatherName : "What"].colors}
-                    style = {styles.container}            >
+                    style = {styles.container}>
                     <View style={styles.upper}>
-                        <Feather color="white" size={144} name={weatherCases[weatherName ? weatherName : "What"].icon}/>
+                        <Feather 
+                            color="white" 
+                            size={144} 
+                            name={weatherCases[weatherName ? weatherName : "What"].icon}
+                            onPress={pressWeather}/>
                         <Text style={styles.temp}>{temp}°C</Text>
                         <Text style={styles.temp}>{weatherName}</Text>
                     </View>
@@ -95,9 +108,13 @@ export default function Weather(props) {
             return (
                 <LinearGradient
                     colors = {weatherCases[weatherName ? weatherName : "What"].colors}
-                    style = {styles.container}            >
+                    style = {styles.container}>
                     <View style={styles.upper}>
-                        <Ionicons color="white" size={144} name={weatherCases[weatherName ? weatherName : "What"].icon}/>
+                        <Ionicons 
+                            color="white" 
+                            size={144} 
+                            name={weatherCases[weatherName ? weatherName : "What"].icon}
+                            onPress={pressWeather}/>
                         <Text style={styles.temp}>{temp}°C</Text>
                         <Text style={styles.temp}>{weatherName}</Text>
                     </View>

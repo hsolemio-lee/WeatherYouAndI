@@ -3,7 +3,7 @@
   "displayName": "WeatherHome",
   "expo": {
     "name": "WeatherYouAndI",
-    "slug": "expo-template-bare",
+    "slug": "expo-template-weather",
     "icon": "weather.png",
     "privacy": "unlisted",
     "sdkVersion": "35.0.0",

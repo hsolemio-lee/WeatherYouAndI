@@ -1,9 +1,9 @@
 {
   "devToolsPort": 19002,
   "expoServerPort": 19000,
-  "packagerPort": null,
-  "packagerPid": null,
+  "packagerPort": 19001,
+  "packagerPid": 26868,
   "expoServerNgrokUrl": "https://wj-5f3.hsolemio-lee.weatheryouandi.exp.direct",
   "packagerNgrokUrl": "https://packager.wj-5f3.hsolemio-lee.weatheryouandi.exp.direct",
-  "ngrokPid": 20900
+  "ngrokPid": 25936
 }
