@@ -87,14 +87,12 @@ export default class App extends Component {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content"/>
-        {isLoaded ? (
-        <Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather}/>
-        ) : (
-          <View style={styles.loading}>
+        {isLoaded ? (<Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather}/>) 
+        : 
+        (<View style={styles.loading}>
             <Text style={styles.loadingText} >날씨를 불러오는 중이에요..</Text>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          </View>
-        )}
+         </View>)}
       <ActivityIndicator animating={isLoaded == false} style={styles.loadingBar} size="large" color="white"/>            
       </View>
     );
