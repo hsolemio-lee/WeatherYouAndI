@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator } from 'react-native';
-import Weather from './weather'
+import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import Weather, {weatherCases} from './weather'
 
 const API_KEY = '0c429a365bfdc6a7526ee98e9324781f'
 
@@ -22,9 +22,10 @@ export default class App extends Component {
   }
 
   componentDidMount() {
+    
     navigator.geolocation.getCurrentPosition(
       position => {
-        this._getWeather(position.coords.latitude, position.coords.longitude)
+        this._getWeather(position);
         this.setState({
           isLoaded: true,
           position: position
@@ -40,8 +41,8 @@ export default class App extends Component {
   }
 
 
-  _getWeather = (lat, lon) => {
-    const url = "http://api.openweathermap.org/data/2.5/weather?units=metric&lat="+lat+"&lon="+lon+"&APPID="+API_KEY
+  _getWeather = (position) => {
+    const url = "http://api.openweathermap.org/data/2.5/weather?units=metric&lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&APPID="+API_KEY
     console.log(url); 
     fetch(url)
     .then(res => res.json())
@@ -49,24 +50,18 @@ export default class App extends Component {
       console.log(json)
       this.setState({
         temperature : json.main.temp,
-        name: json.weather[0].main
-      })
+        name: json.weather[0].main,
+        isLoaded: true,
+        position: position,
+      });
     })
   }
 
   _getCurrentLocAndWeather() {
-    this.setState({
-      isLoaded: false
-    })
-    console.log(this.state.isLoaded);
     navigator.geolocation.getCurrentPosition(
       position => {
         console.log(position);
-        this._getWeather(position.coords.latitude, position.coords.longitude)
-        this.setState({
-          isLoaded: true,
-          position: position,
-        });
+        this._getWeather(position);
       },
       error => {
         console.log(error);
@@ -78,22 +73,23 @@ export default class App extends Component {
   }
 
   _refreshWeather() {
-    console.log("hello weather")
+    console.log("Clicked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    this.setState({
+      isLoaded: false
+    })
     this._getCurrentLocAndWeather();
   }
   
   render() {
     const {isLoaded, error, temperature, name} = this.state;
+    const subtitleIndex = Math.floor(Math.random()*(weatherCases[name ? name : "What"].subtitle.length));
     return (
       <View style={styles.container}>
+        <ActivityIndicator animating={!isLoaded} style={styles.loadingBar} size="large" color="white"/>            
         <StatusBar barStyle="light-content"/>
-        {isLoaded ? (<Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather}/>) 
-        : 
-        (<View style={styles.loading}>
-            <Text style={styles.loadingText} >날씨를 불러오는 중이에요..</Text>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-         </View>)}
-      <ActivityIndicator animating={isLoaded == false} style={styles.loadingBar} size="large" color="white"/>            
+        {isLoaded ? <Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather} subtitleIndex={subtitleIndex}/>
+        :
+        <View style={styles.loading}><Text style={styles.loadingText} >날씨 가져오는 중</Text>{error ? <Text style={styles.errorText}>{error}</Text> : null}</View>}
       </View>
     );
   }
