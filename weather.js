@@ -235,23 +235,23 @@ export default class Weather extends Component {
     _returnIcon() {
       const {weatherName, pressWeather} = this.props;
       if(weatherName == "Haze" || weatherName == "Mist") {
-        return (<MaterialCommunityIcons 
+        return <MaterialCommunityIcons 
                 color="white" 
                 size={144} 
                 name={weatherCases[weatherName].icon} 
-          onPress={this._pressWeather}/>);
+          onPress={this._pressWeather}/>;
       } else if (weatherName == "Drizzle") {
-        return (<Feather 
+        return <Feather 
                 color="white" 
                 size={144} 
                 name={weatherCases[weatherName].icon}
-                onPress={this._pressWeather}/>);
+                onPress={this._pressWeather}/>;
       } else {
-        return (<Ionicons 
+        return <Ionicons 
                 color="white" 
                 size={144} 
                 name={weatherCases[weatherName].icon}
-                onPress={this._pressWeather}/>);
+                onPress={this._pressWeather}/>;
       }
     
     }
@@ -265,7 +265,7 @@ export default class Weather extends Component {
             <View style = {styles.container}>        
                 <ActivityIndicator animating={!isLoaded} style={styles.loadingBar} size="large" color="white"/>    
                 <View style={styles.upper} >
-                    {this._returnIcon}
+                    {this._returnIcon()}
                     <Text style={styles.temp}>{temp}°C</Text>
                     <Text style={styles.temp}>{weatherName}</Text>
                 </View>
