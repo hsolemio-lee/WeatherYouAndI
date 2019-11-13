@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
 import Weather, {weatherCases} from './weather'
 
 const API_KEY = '0c429a365bfdc6a7526ee98e9324781f'
@@ -14,15 +14,18 @@ export default class App extends Component {
       temperature: null,
       name: null,
       position: null,
+      loadingValue: new Animated.Value(0)
     }
 
     this._getWeather = this._getWeather.bind(this);
+    this._fadeIn = this._fadeIn.bind(this);
     this._getCurrentLocAndWeather = this._getCurrentLocAndWeather.bind(this);
     this._refreshWeather = this._refreshWeather.bind(this);
+    this._getLoadingViewStyle = this._getLoadingViewStyle.bind(this);
   }
 
   componentDidMount() {
-    
+    this._fadeIn();
     navigator.geolocation.getCurrentPosition(
       position => {
         this._getWeather(position);
@@ -37,9 +40,18 @@ export default class App extends Component {
           error : error
         });
       }
-    )
+    );
   }
 
+  _fadeIn(){
+    Animated.timing (
+      this.state.loadingValue, {
+        toValue : 1,
+        duration : 1000,
+        //easing : Easing.bounce,
+        delay : 200
+    }).start();
+  }
 
   _getWeather = (position) => {
     const url = "http://api.openweathermap.org/data/2.5/weather?units=metric&lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&APPID="+API_KEY
@@ -72,6 +84,18 @@ export default class App extends Component {
     )
   }
 
+  _getLoadingViewStyle() {
+    const loading = {
+      flex: 1,
+      backgroundColor: '#FDF6AA',
+      justifyContent: "flex-end",
+      paddingLeft: 24,
+      opacity: this.state.loadingValue
+    };
+
+    return loading;
+  }
+
   _refreshWeather() {
     console.log("Clicked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     this.setState({
@@ -85,11 +109,8 @@ export default class App extends Component {
     const subtitleIndex = Math.floor(Math.random()*(weatherCases[name ? name : "What"].subtitle.length));
     return (
       <View style={styles.container}>
-        <ActivityIndicator animating={!isLoaded} style={styles.loadingBar} size="large" color="white"/>            
         <StatusBar barStyle="light-content"/>
-        {isLoaded ? <Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather} subtitleIndex={subtitleIndex}/>
-        :
-        <View style={styles.loading}><Text style={styles.loadingText} >날씨 가져오는 중</Text>{error ? <Text style={styles.errorText}>{error}</Text> : null}</View>}
+        <Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather} subtitleIndex={subtitleIndex} isLoaded={isLoaded}/>
       </View>
     );
   }
@@ -100,27 +121,4 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5FCFF',
   },
-  errorText: {
-    color: "red",
-    marginBottom: 10
-  },
-  loading: {
-    flex: 1,
-    backgroundColor: '#FDF6AA',
-    justifyContent: "flex-end",
-    paddingLeft: 24
-  },
-  loadingText: {
-    fontSize: 38,
-    marginBottom: 100
-  },
-  loadingBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center'
-  }
 });
