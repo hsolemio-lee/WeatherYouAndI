@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
 import Weather, {weatherCases} from './weather'
+import GestureRecognizer from 'react-native-swipe-gestures';
 
 const API_KEY = '0c429a365bfdc6a7526ee98e9324781f'
 
@@ -14,18 +15,18 @@ export default class App extends Component {
       temperature: null,
       name: null,
       position: null,
-      loadingValue: new Animated.Value(0)
+      screenNo: 0,
+      swipe: "",
     }
 
     this._getWeather = this._getWeather.bind(this);
-    this._fadeIn = this._fadeIn.bind(this);
     this._getCurrentLocAndWeather = this._getCurrentLocAndWeather.bind(this);
     this._refreshWeather = this._refreshWeather.bind(this);
-    this._getLoadingViewStyle = this._getLoadingViewStyle.bind(this);
+    this._onSwipeLeft = this._onSwipeLeft.bind(this);
+    this._onSwipeRight = this._onSwipeRight.bind(this);
   }
 
   componentDidMount() {
-    this._fadeIn();
     navigator.geolocation.getCurrentPosition(
       position => {
         this._getWeather(position);
@@ -41,16 +42,6 @@ export default class App extends Component {
         });
       }
     );
-  }
-
-  _fadeIn(){
-    Animated.timing (
-      this.state.loadingValue, {
-        toValue : 1,
-        duration : 1000,
-        //easing : Easing.bounce,
-        delay : 200
-    }).start();
   }
 
   _getWeather = (position) => {
@@ -84,34 +75,76 @@ export default class App extends Component {
     )
   }
 
-  _getLoadingViewStyle() {
-    const loading = {
-      flex: 1,
-      backgroundColor: '#FDF6AA',
-      justifyContent: "flex-end",
-      paddingLeft: 24,
-      opacity: this.state.loadingValue
-    };
-
-    return loading;
-  }
-
   _refreshWeather() {
-    console.log("Clicked!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     this.setState({
       isLoaded: false
     })
     this._getCurrentLocAndWeather();
   }
+
+  _onSwipeLeft() {
+    const {screenNo} = this.state;
+    if(screenNo !== 1) {
+      this.setState({
+        swipe: "left"
+      }, () => {
+        this.setState({
+          screenNo: screenNo+1
+        });
+      })
+      
+    }
+  }
+
+  _onSwipeRight() {
+    const {screenNo} = this.state;
+    if(screenNo !== 0 ) {
+      this.setState({
+        swipe: "right"
+      }, () => {
+        this.setState({
+          screenNo: screenNo-1
+        });
+      })
+    }
+    
+    if(this.state.screenNo === 0) {
+      this._refreshWeather();
+    }
+  }
   
   render() {
-    const {isLoaded, error, temperature, name} = this.state;
+    const {isLoaded, error, temperature, name, screenNo, swipe} = this.state;
     const subtitleIndex = Math.floor(Math.random()*(weatherCases[name ? name : "What"].subtitle.length));
+    console.log("screenNo : ",screenNo);
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content"/>
-        <Weather temp = {Math.floor(temperature)} weatherName = {name} pressWeather={this._refreshWeather} subtitleIndex={subtitleIndex} isLoaded={isLoaded}/>
-      </View>
+      <GestureRecognizer
+          onSwipeLeft={this._onSwipeLeft}
+          onSwipeRight={this._onSwipeRight}
+          config={{
+            velocityThreshold: 0.3,
+            directionalOffsetThreshold: 80,
+          }}
+          style={{
+            flex: 1,
+            backgroundColor: '#F5FCFF',
+            flexDirection: 'row'
+          }}>
+        
+          <StatusBar barStyle="light-content"/>
+          <Animated.View style={styles.container}>
+            {screenNo === 0 ? 
+              <Weather temp = {Math.floor(temperature)} 
+                weatherName = {name} 
+                pressWeather={this._refreshWeather} 
+                subtitleIndex={subtitleIndex} 
+                isLoaded={isLoaded}
+                swipe={swipe}/>
+              :
+              <Text>안녕 쟈기</Text>
+            }
+          </Animated.View>
+      </GestureRecognizer>
     );
   }
 }
@@ -122,3 +155,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5FCFF',
   },
 });
+
