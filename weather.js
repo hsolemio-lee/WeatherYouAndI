@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, Animated, ActivityIndicator} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons, AntDesign, Feather } from "@expo/vector-icons";
 import PropTypes from "prop-types";
@@ -98,73 +98,180 @@ export const weatherCases = {
     }
 }
 
-export default function Weather(props) {
+export default class Weather extends Component {
+    constructor(props) {
+      super(props);
+      this.state={
+        titleValue: new Animated.Value(0),
+        subTitleValue: new Animated.Value(0),
+        position: new Animated.ValueXY({x:0, y:0}),
+        fullViewValue: new Animated.Value(1),
+      };
 
-    const {temp, weatherName, pressWeather, subtitleIndex} = props;
+      this._fadeIn = this._fadeIn.bind(this);
+      this._fadeOut = this._fadeOut.bind(this);
+      this._getTitleStyle = this._getTitleStyle.bind(this);
+      this._getSubTitleStyle = this._getSubTitleStyle.bind(this);
+      this._getFullViewStyle = this._getFullViewStyle.bind(this);
+      this._pressWeather = this._pressWeather.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps){
+      this._fadeIn();
+    }
+
+
+    _fadeIn(){
+      Animated.parallel([
+          Animated.timing(this.state.titleValue, {
+            toValue : 1,
+            duration : 1000,
+            //easing : Easing.bounce,
+            delay : 200
+          }),
+          Animated.timing (this.state.subTitleValue, {
+            toValue : 1,
+            duration : 1000,
+            //easing : Easing.bounce,
+            delay : 1000
+          })
+      ]).start();
+    }
+
+    _fadeOut(){
+      return new Promise((resolve) => {
+        Animated.parallel([
+          Animated.timing(this.state.titleValue, {
+            toValue : 0,
+            duration : 1000,
+            //easing : Easing.bounce,
+            delay : 0
+          }),
+          Animated.timing (this.state.subTitleValue, {
+            toValue : 0,
+            duration : 1000,
+            //easing : Easing.bounce,
+            delay : 1000
+          })
+        ]).start(()=>{
+          this.props.pressWeather();
+        });
+      });
+    }
+
+    _getTitleStyle() {
+      const title = {
+          fontSize: 38,
+          color: "white",
+          marginBottom: 10,
+          fontWeight: "300",
+          opacity: this.state.titleValue
+      }
+      return title;  
+    }
+
+    _getSubTitleStyle() {
+      const subTitle = {
+        fontSize: 24,
+        color: "white",
+        marginBottom: 100,
+        opacity: this.state.subTitleValue
+      }
+      return subTitle;
+    }
+
+    _getFullViewStyle() {
+      const fullView = {
+        flex: 1,
+        justifyContent: 'center',
+        opacity: this.state.fullViewValue
+      }
+      return fullView;
+    }
+
+    _pressWeather() {
+      this._fadeOut();
+    }
+
+
+    render() {
+      const {temp, weatherName, subtitleIndex, isLoaded} = this.props;
     
-    console.log("subtitleIndex :", subtitleIndex);
-        if(weatherName == "Haze" || weatherName == "Mist") {
-            return (
-                <LinearGradient
-                    colors = {weatherCases[weatherName ? weatherName : "What"].colors}
-                    style = {styles.container}>
-                    <View style={styles.upper} >
-                        <MaterialCommunityIcons 
-                            color="white" 
-                            size={144} 
-                            name={weatherCases[weatherName ? weatherName : "What"].icon} 
-                            onPress={pressWeather}
-                        />
-                        <Text style={styles.temp}>{temp}°C</Text>
-                        <Text style={styles.temp}>{weatherName}</Text>
-                    </View>
-                    <View style={styles.lower}>
-                        <Text style={styles.title}>{weatherCases[weatherName ? weatherName : "What"].title}</Text>
-                        <Text style={styles.subtitle}>{weatherCases[weatherName ? weatherName : "What"].subtitle[subtitleIndex]}</Text>
-                    </View>
-                </LinearGradient>
-            )
-        } else if (weatherName == "Drizzle") {
-            return (
-                <LinearGradient
-                    colors = {weatherCases[weatherName ? weatherName : "What"].colors}
-                    style = {styles.container}>
-                    <View style={styles.upper}>
-                        <Feather 
-                            color="white" 
-                            size={144} 
-                            name={weatherCases[weatherName ? weatherName : "What"].icon}
-                            onPress={pressWeather}/>
-                        <Text style={styles.temp}>{temp}°C</Text>
-                        <Text style={styles.temp}>{weatherName}</Text>
-                    </View>
-                    <View style={styles.lower}>
-                        <Text style={styles.title}>{weatherCases[weatherName ? weatherName : "What"].title}</Text>
-                        <Text style={styles.subtitle}>{weatherCases[weatherName ? weatherName : "What"].subtitle[subtitleIndex]}</Text>
-                    </View>
-                </LinearGradient>
-            )
-        } else {
-            return (
-                <LinearGradient
-                    colors = {weatherCases[weatherName ? weatherName : "What"].colors}
-                    style = {styles.container}>
-                    <View style={styles.upper}>
-                        <Ionicons 
-                            color="white" 
-                            size={144} 
-                            name={weatherCases[weatherName ? weatherName : "What"].icon}
-                            onPress={pressWeather}/>
-                        <Text style={styles.temp}>{temp}°C</Text>
-                        <Text style={styles.temp}>{weatherName}</Text>
-                    </View>
-                    <View style={styles.lower}>
-                        <Text style={styles.title}>{weatherCases[weatherName ? weatherName : "What"].title}</Text>
-                        <Text style={styles.subtitle}>{weatherCases[weatherName ? weatherName : "What"].subtitle[subtitleIndex]}</Text>
-                    </View>
-                </LinearGradient>
-            )
-        }
+      console.log("subtitleIndex :", subtitleIndex);
+          if(weatherName == "Haze" || weatherName == "Mist") {
+              return (
+                <Animated.View style={this._getFullViewStyle()}>
+                  <LinearGradient
+                      colors = {weatherCases[weatherName ? weatherName : "What"].colors}
+                      style = {styles.container}>        
+                      <ActivityIndicator animating={!isLoaded} style={styles.loadingBar} size="large" color="white"/>    
+                      <View style={styles.upper} >
+                          <MaterialCommunityIcons 
+                              color="white" 
+                              size={144} 
+                              name={weatherCases[weatherName ? weatherName : "What"].icon} 
+                              onPress={this._pressWeather}
+                          />
+                          <Text style={styles.temp}>{temp}°C</Text>
+                          <Text style={styles.temp}>{weatherName}</Text>
+                      </View>
+                      <View style={styles.lower}>
+                          <Animated.Text style={this._getTitleStyle()}>{weatherCases[weatherName ? weatherName : "What"].title}</Animated.Text>
+                          <Animated.Text style={this._getSubTitleStyle()}>{weatherCases[weatherName ? weatherName : "What"].subtitle[subtitleIndex]}</Animated.Text>
+                      </View>
+                  </LinearGradient>
+                </Animated.View>
+                
+              )
+          } else if (weatherName == "Drizzle") {
+              return (
+                <Animated.View style={this._getFullViewStyle()}>
+                  <LinearGradient
+                      colors = {weatherCases[weatherName ? weatherName : "What"].colors}
+                      style = {styles.container}>
+                      <ActivityIndicator animating={!isLoaded} style={styles.loadingBar} size="large" color="white"/>            
+                      <View style={styles.upper}>
+                          <Feather 
+                              color="white" 
+                              size={144} 
+                              name={weatherCases[weatherName ? weatherName : "What"].icon}
+                              onPress={this._pressWeather}/>
+                          <Text style={styles.temp}>{temp}°C</Text>
+                          <Text style={styles.temp}>{weatherName}</Text>
+                      </View>
+                      <View style={styles.lower}>
+                          <Animated.Text style={this._getTitleStyle()}>{weatherCases[weatherName ? weatherName : "What"].title}</Animated.Text>
+                          <Animated.Text style={this._getSubTitleStyle()}>{weatherCases[weatherName ? weatherName : "What"].subtitle[subtitleIndex]}</Animated.Text>
+                      </View>
+                  </LinearGradient>  
+                </Animated.View>
+              )
+          } else {
+              return (
+                <Animated.View style={this._getFullViewStyle()}>
+                  <LinearGradient
+                      colors = {weatherCases[weatherName ? weatherName : "What"].colors}
+                      style = {styles.container}>
+                      <ActivityIndicator animating={!isLoaded} style={styles.loadingBar} size="large" color="white"/>            
+                      <View style={styles.upper}>
+                          <Ionicons 
+                              color="white" 
+                              size={144} 
+                              name={weatherCases[weatherName ? weatherName : "What"].icon}
+                              onPress={this._pressWeather}/>
+                          <Text style={styles.temp}>{temp}°C</Text>
+                          <Text style={styles.temp}>{weatherName}</Text>
+                      </View>
+                      <View style={styles.lower}>
+                          <Animated.Text style={this._getTitleStyle()}>{weatherCases[weatherName ? weatherName : "What"].title}</Animated.Text>
+                          <Animated.Text style={this._getSubTitleStyle()}>{weatherCases[weatherName ? weatherName : "What"].subtitle[subtitleIndex]}</Animated.Text>
+                      </View>
+                  </LinearGradient>
+                </Animated.View>
+              )
+          }
+    }
+    
         
 }
 
@@ -194,15 +301,13 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
         paddingLeft: 25
     },
-    title: {
-        fontSize: 38,
-        color: "white",
-        marginBottom: 10,
-        fontWeight: "300",
-    },
-    subtitle: {
-        fontSize: 24,
-        color: "white",
-        marginBottom: 100
-    },
+    loadingBar: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
 });
