@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
-import Weather, {weatherCases} from './weather'
+import Weather, {weatherCases} from './weather';
+import {LinearGradient} from 'expo-linear-gradient';
 import GestureRecognizer from 'react-native-swipe-gestures';
+import YourWeather from './yourWeather';
 
 const API_KEY = '0c429a365bfdc6a7526ee98e9324781f'
 
@@ -13,7 +15,7 @@ export default class App extends Component {
       isLoaded: false,
       error: null,
       temperature: null,
-      name: null,
+      name: "What",
       position: null,
       screenNo: 0,
       swipe: "",
@@ -46,11 +48,10 @@ export default class App extends Component {
 
   _getWeather = (position) => {
     const url = "http://api.openweathermap.org/data/2.5/weather?units=metric&lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&APPID="+API_KEY
-    console.log(url); 
+    
     fetch(url)
     .then(res => res.json())
     .then(json => {
-      console.log(json)
       this.setState({
         temperature : json.main.temp,
         name: json.weather[0].main,
@@ -63,7 +64,7 @@ export default class App extends Component {
   _getCurrentLocAndWeather() {
     navigator.geolocation.getCurrentPosition(
       position => {
-        console.log(position);
+        console.log("position: ",position);
         this._getWeather(position);
       },
       error => {
@@ -86,12 +87,9 @@ export default class App extends Component {
     const {screenNo} = this.state;
     if(screenNo !== 1) {
       this.setState({
-        swipe: "left"
-      }, () => {
-        this.setState({
-          screenNo: screenNo+1
-        });
-      })
+        swipe: "left",
+        screenNo: screenNo+1
+      });
       
     }
   }
@@ -100,12 +98,9 @@ export default class App extends Component {
     const {screenNo} = this.state;
     if(screenNo !== 0 ) {
       this.setState({
-        swipe: "right"
-      }, () => {
-        this.setState({
-          screenNo: screenNo-1
-        });
-      })
+        swipe: "right",
+        screenNo: screenNo-1
+      });
     }
     
     if(this.state.screenNo === 0) {
@@ -115,8 +110,7 @@ export default class App extends Component {
   
   render() {
     const {isLoaded, error, temperature, name, screenNo, swipe} = this.state;
-    const subtitleIndex = Math.floor(Math.random()*(weatherCases[name ? name : "What"].subtitle.length));
-    console.log("screenNo : ",screenNo);
+    const subtitleIndex = Math.floor(Math.random()*(weatherCases[name].subtitle.length));
     return (
       <GestureRecognizer
           onSwipeLeft={this._onSwipeLeft}
@@ -132,7 +126,9 @@ export default class App extends Component {
           }}>
         
           <StatusBar barStyle="light-content"/>
-          <Animated.View style={styles.container}>
+          <LinearGradient
+                      colors = {weatherCases[name].colors}
+                      style = {styles.container}> 
             {screenNo === 0 ? 
               <Weather temp = {Math.floor(temperature)} 
                 weatherName = {name} 
@@ -141,9 +137,9 @@ export default class App extends Component {
                 isLoaded={isLoaded}
                 swipe={swipe}/>
               :
-              <Text>안녕 쟈기</Text>
+              <YourWeather swipe={swipe}/>
             }
-          </Animated.View>
+          </LinearGradient>
       </GestureRecognizer>
     );
   }
