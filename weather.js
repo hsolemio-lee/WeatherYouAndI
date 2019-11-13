@@ -104,8 +104,8 @@ export default class Weather extends Component {
       this.state={
         titleValue: new Animated.Value(0),
         subTitleValue: new Animated.Value(0),
-        position: new Animated.ValueXY({x:0, y:0}),
-        fullViewValue: new Animated.Value(1),
+        fullViewPosition: props.swipe === "right" ? new Animated.ValueXY({x:-300, y:0}) : new Animated.ValueXY({x:0, y:0}),
+        fullViewValue: props.swipe === "right" ? new Animated.Value(0) : new Animated.Value(1),
       };
 
       this._fadeIn = this._fadeIn.bind(this);
@@ -116,10 +116,48 @@ export default class Weather extends Component {
       this._pressWeather = this._pressWeather.bind(this);
     }
 
-    componentWillReceiveProps(nextProps){
-      this._fadeIn();
+    componentWillMount() {
+      this.props.pressWeather();
     }
 
+    componentWillReceiveProps(nextProps){
+      if(nextProps.swipe === "left") {
+       
+        Animated.parallel([
+            Animated.timing(this.state.fullViewValue, {
+              toValue : 0,
+              duration : 300,
+              //easing : Easing.bounce,
+              delay : 0
+            }),
+            Animated.timing (this.state.fullViewPosition, {
+              toValue : {x: -300, y: 0},
+              duration : 300,
+              //easing : Easing.bounce,
+              delay : 0
+            })
+        ]).start();
+        
+      } else if(nextProps.swipe === "right") {
+        
+        Animated.parallel([
+            Animated.timing(this.state.fullViewValue, {
+              toValue : 1,
+              duration : 300,
+              //easing : Easing.bounce,
+              delay : 0
+            }),
+            Animated.timing (this.state.fullViewPosition, {
+              toValue : {x: 0, y: 0},
+              duration : 300,
+              //easing : Easing.bounce,
+              delay : 0
+            })
+        ]).start();
+      }
+      
+      this._fadeIn();
+    }
 
     _fadeIn(){
       Animated.parallel([
@@ -139,23 +177,21 @@ export default class Weather extends Component {
     }
 
     _fadeOut(){
-      return new Promise((resolve) => {
-        Animated.parallel([
-          Animated.timing(this.state.titleValue, {
-            toValue : 0,
-            duration : 1000,
-            //easing : Easing.bounce,
-            delay : 0
-          }),
-          Animated.timing (this.state.subTitleValue, {
-            toValue : 0,
-            duration : 1000,
-            //easing : Easing.bounce,
-            delay : 1000
-          })
-        ]).start(()=>{
-          this.props.pressWeather();
-        });
+      Animated.parallel([
+        Animated.timing(this.state.titleValue, {
+          toValue : 0,
+          duration : 1000,
+          //easing : Easing.bounce,
+          delay : 0
+        }),
+        Animated.timing (this.state.subTitleValue, {
+          toValue : 0,
+          duration : 1000,
+          //easing : Easing.bounce,
+          delay : 1000
+        })
+      ]).start(()=>{
+        this.props.pressWeather();
       });
     }
 
@@ -184,7 +220,8 @@ export default class Weather extends Component {
       const fullView = {
         flex: 1,
         justifyContent: 'center',
-        opacity: this.state.fullViewValue
+        opacity: this.state.fullViewValue,
+        left: this.state.fullViewPosition.x,
       }
       return fullView;
     }
@@ -195,7 +232,7 @@ export default class Weather extends Component {
 
 
     render() {
-      const {temp, weatherName, subtitleIndex, isLoaded} = this.props;
+      const {temp, weatherName, subtitleIndex, isLoaded, viewStyle} = this.props;
     
       console.log("subtitleIndex :", subtitleIndex);
           if(weatherName == "Haze" || weatherName == "Mist") {
