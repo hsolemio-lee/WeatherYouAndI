@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, StatusBar, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
-import Weather, {weatherCases} from './weather';
-import {LinearGradient} from 'expo-linear-gradient';
+import Weather, {weatherCases} from './components/weather';
+import {LinearGradient} from 'expo-linear-gradient';``
 import GestureRecognizer from 'react-native-swipe-gestures';
-import YourWeather from './yourWeather';
+import YourWeather from './components/yourWeather';
+import { createStore, applyMiddleware } from 'redux';
+import {Provider} from 'react-redux';
+import reducers from './reducers';
+import ReduxThunk from 'redux-thunk';
 
-const API_KEY = '0c429a365bfdc6a7526ee98e9324781f'
+const API_KEY = '0c429a365bfdc6a7526ee98e9324781f';
 
 export default class App extends Component {
 
@@ -111,7 +115,10 @@ export default class App extends Component {
   render() {
     const {isLoaded, error, temperature, name, screenNo, swipe} = this.state;
     const subtitleIndex = Math.floor(Math.random()*(weatherCases[name].subtitle.length));
+    const store = createStore(reducers, applyMiddleware(ReduxThunk));
+    // console.log("store: ", store.getState());
     return (
+      <Provider store={store}>
       <GestureRecognizer
           onSwipeLeft={this._onSwipeLeft}
           onSwipeRight={this._onSwipeRight}
@@ -141,6 +148,7 @@ export default class App extends Component {
             }
           </LinearGradient>
       </GestureRecognizer>
+      </Provider>
     );
   }
 }
